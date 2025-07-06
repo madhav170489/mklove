@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#764ba2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="MK Love Games">
+    <title>MK Love Games - Gaming Console</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-gamepad"></i>
+                <h1>MK Love Games</h1>
+            </div>
+            <div class="online-status">
+                <label for="playerSelect">Choose Player:</label>
+                <select id="playerSelect" onchange="setActivePlayer()">
+                    <option value="">Select Player</option>
+                    <option value="Madhav">Madhav</option>
+                    <option value="Khushi">Khushi</option>
+                </select>
+                <span id="onlineIndicator" class="status-offline">Offline</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">            <!-- Player Info -->
+            <div class="player-info" id="playerInfo" style="display: none;">
+                <div class="welcome-message">
+                    <h2>Welcome, <span id="playerName"></span>! 💖</h2>
+                    <p>Ready to play some games together?</p>
+                </div>
+            </div>
+
+            <!-- Multiplayer Connection -->
+            <div class="multiplayer-section">
+                <h2>🌐 Play Together Online</h2>
+                <div class="connection-status">
+                    <span id="connectionStatus">🔴 Not Connected</span>
+                </div>
+                <div class="connection-controls">
+                    <button class="connection-btn host-btn" onclick="createRoom()">
+                        <i class="fas fa-plus"></i>
+                        Create Room
+                    </button>
+                    <button class="connection-btn join-btn" onclick="joinRoom()">
+                        <i class="fas fa-door-open"></i>
+                        Join Room
+                    </button>
+                </div>
+                <div id="roomInfo" class="room-info" style="display: none;"></div>
+            </div>
+
+            <!-- Games Grid -->
+            <div class="games-section">
+                <h2>Choose Your Game</h2>
+                <div class="games-grid">
+                    <div class="game-card" onclick="openGame('ludo')">
+                        <i class="fas fa-dice"></i>
+                        <h3>Ludo</h3>
+                        <p>Classic board game</p>
+                    </div>
+                    <div class="game-card" onclick="openGame('carrom')">
+                        <i class="fas fa-circle"></i>
+                        <h3>Carrom</h3>
+                        <p>Strike and pocket</p>
+                    </div>
+                    <div class="game-card" onclick="openGame('snakes')">
+                        <i class="fas fa-ladder"></i>
+                        <h3>Snakes & Ladders</h3>
+                        <p>Climb to victory</p>
+                    </div>
+                    <div class="game-card" onclick="openGame('tictac')">
+                        <i class="fas fa-hashtag"></i>
+                        <h3>Tic Tac Toe</h3>
+                        <p>Three in a row</p>
+                    </div>
+                    <div class="game-card" onclick="openGame('tennis')">
+                        <i class="fas fa-table-tennis"></i>
+                        <h3>Tennis</h3>
+                        <p>Serve and volley</p>
+                    </div>
+                    <div class="game-card" onclick="openGame('race')">
+                        <i class="fas fa-car"></i>
+                        <h3>Race</h3>
+                        <p>Speed challenge</p>
+                    </div>
+                    <div class="game-card" onclick="openGame('fight')">
+                        <i class="fas fa-fist-raised"></i>
+                        <h3>Fight</h3>
+                        <p>Battle arena</p>
+                    </div>
+                    <div class="game-card" onclick="openGame('isto')">
+                        <i class="fas fa-star"></i>
+                        <h3>Isto</h3>
+                        <p>Special game</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Section -->
+            <div class="chat-section">
+                <div class="chat-header">
+                    <h3>Game Chat 💬</h3>
+                    <button id="toggleChat" onclick="toggleChat()">
+                        <i class="fas fa-comment"></i>
+                    </button>
+                </div>
+                <div class="chat-container" id="chatContainer">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="system-message">Welcome to MK Love Games! Start chatting...</div>
+                    </div>
+                    <div class="emoji-panel">
+                        <button class="emoji-btn" onclick="addEmoji('😀', 'happy')">😀</button>
+                        <button class="emoji-btn" onclick="addEmoji('😂', 'laugh')">😂</button>
+                        <button class="emoji-btn" onclick="addEmoji('😍', 'love')">😍</button>
+                        <button class="emoji-btn" onclick="addEmoji('😎', 'cool')">😎</button>
+                        <button class="emoji-btn" onclick="addEmoji('🥳', 'party')">🥳</button>
+                        <button class="emoji-btn" onclick="addEmoji('😤', 'angry')">😤</button>
+                        <button class="emoji-btn" onclick="addEmoji('🤔', 'think')">🤔</button>
+                        <button class="emoji-btn" onclick="addEmoji('👏', 'clap')">👏</button>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" id="messageInput" placeholder="Type your message..." 
+                               onkeypress="handleEnter(event)">
+                        <button onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Game Modal -->
+        <div id="gameModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="gameTitle">Game</h2>
+                    <span class="close" onclick="closeGame()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="gameContainer">
+                        <!-- Game content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio elements for sound effects -->
+    <audio id="soundHappy" preload="auto">
+        <source src="data:audio/wav;base64,UklGRvIJAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAABBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAYBkOa1/HJdSQFH3LB7ooPCQ==" type="audio/wav">
+    </audio>
+    <audio id="soundLaugh" preload="auto">
+        <source src="data:audio/wav;base64,UklGRvIJAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAABBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAYBkOa1/HJdSQFH3LB7ooPCQ==" type="audio/wav">
+    </audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
