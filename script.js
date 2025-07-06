@@ -79,9 +79,9 @@ function playSound(type) {
         
         gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + duration);    } catch (error) {
+          oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration);
+    } catch (error) {
         console.log('Audio not supported');
     }
 }
@@ -247,11 +247,9 @@ async function sendSignalingMessage(message) {
         } catch (e) {
             console.log('Cross-device signaling not available, using localStorage for same-device testing');
         }
-        
-    } catch (error) {
+          } catch (error) {
         console.log('Signaling error:', error);
     }
-}
 }
 
 // Listen for signaling messages
@@ -478,6 +476,38 @@ function isCurrentPlayerTurn() {
            ((gameState.ticTacToe.currentPlayer === 'X' && isHost) ||
             (gameState.ticTacToe.currentPlayer === 'O' && !isHost));
 }
+
+// Test Connection function integrated into main script
+function testConnection() {
+    if (!currentPlayer) {
+        alert('Please select a player first!');
+        return;
+    }
+    
+    console.log('Starting test connection...');
+    connectionStatus = 'connecting';
+    updateConnectionStatus();
+    
+    // Simulate connection establishment
+    setTimeout(() => {
+        connectionStatus = 'connected';
+        isConnected = true;
+        remotePlayer = currentPlayer === 'Madhav' ? 'Khushi' : 'Madhav';
+        roomId = 'TEST123';
+        
+        updateConnectionStatus();
+        addSystemMessage(`🎮 Test Mode: Connected to ${remotePlayer}!`);
+        addSystemMessage('You can now test all multiplayer features! 🎯');
+        
+        // Show test room info
+        displayRoomInfo();
+        
+        console.log('Test connection established successfully');
+    }, 2000);
+}
+
+// Make testConnection available globally
+window.testConnection = testConnection;
 
 // ================== END MULTIPLAYER FUNCTIONALITY ==================
 
