@@ -46,8 +46,7 @@
                 <h2>🌐 Play Together Online</h2>
                 <div class="connection-status">
                     <span id="connectionStatus">🔴 Not Connected</span>
-                </div>
-                <div class="connection-controls">
+                </div>                <div class="connection-controls">
                     <button class="connection-btn host-btn" onclick="createRoom()">
                         <i class="fas fa-plus"></i>
                         Create Room
@@ -55,6 +54,10 @@
                     <button class="connection-btn join-btn" onclick="joinRoom()">
                         <i class="fas fa-door-open"></i>
                         Join Room
+                    </button>
+                    <button class="connection-btn" onclick="testConnection()" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
+                        <i class="fas fa-flask"></i>
+                        Test Mode
                     </button>
                 </div>
                 <div id="roomInfo" class="room-info" style="display: none;"></div>
@@ -164,6 +167,7 @@
         <source src="data:audio/wav;base64,UklGRvIJAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAABBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAYBkOa1/HJdSQFH3LB7ooPCQ==" type="audio/wav">
     </audio>
 
+    <script src="test-connection.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

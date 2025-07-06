@@ -141,33 +141,61 @@ async function createRoom() {
     roomId = generateRoomId();
     isHost = true;
     connectionStatus = 'connecting';
+    updateConnectionStatus();
     
-    initializeWebRTC();
+    // Simple demo mode for testing
+    const useDemo = confirm('Use Demo Mode for testing? (Click OK for demo connection, Cancel to try real connection)');
     
-    // Create data channel
-    dataChannel = peerConnection.createDataChannel('game-data');
-    dataChannel.onopen = () => {
-        console.log('Data channel opened');
-        connectionStatus = 'connected';
-        isConnected = true;
+    if (useDemo) {
+        // Simulate successful connection after 2 seconds
+        setTimeout(() => {
+            connectionStatus = 'connected';
+            isConnected = true;
+            remotePlayer = currentPlayer === 'Madhav' ? 'Khushi' : 'Madhav';
+            updateConnectionStatus();
+            addSystemMessage(`🎮 Demo Mode: Connected to ${remotePlayer}!`);
+            addSystemMessage('You can now test multiplayer features! 🎯');
+        }, 2000);
+        
+        displayRoomInfo();
+        return;
+    }
+    
+    // Real WebRTC attempt
+    try {
+        initializeWebRTC();
+        
+        // Create data channel
+        dataChannel = peerConnection.createDataChannel('game-data');
+        dataChannel.onopen = () => {
+            console.log('Data channel opened');
+            connectionStatus = 'connected';
+            isConnected = true;
+            updateConnectionStatus();
+        };
+        dataChannel.onmessage = handleRemoteMessage;
+        
+        // Create offer
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        
+        // Send offer through signaling
+        sendSignalingMessage({
+            type: 'offer',
+            offer: offer,
+            roomId: roomId,
+            from: currentPlayer
+        });
+        
+        displayRoomInfo();
+        startSignalingListener();
+        
+    } catch (error) {
+        console.error('WebRTC error:', error);
+        connectionStatus = 'disconnected';
         updateConnectionStatus();
-    };
-    dataChannel.onmessage = handleRemoteMessage;
-    
-    // Create offer
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    
-    // Send offer through signaling
-    sendSignalingMessage({
-        type: 'offer',
-        offer: offer,
-        roomId: roomId,
-        from: currentPlayer
-    });
-    
-    displayRoomInfo();
-    startSignalingListener();
+        alert('Real connection failed. Try demo mode for testing features.');
+    }
 }
 
 // Join Room (Guest)
@@ -195,37 +223,42 @@ function generateRoomId() {
 // Simple signaling using a public API (no server needed)
 async function sendSignalingMessage(message) {
     try {
-        // Using a simple HTTP-based signaling approach
-        // In production, you'd use a proper signaling server
+        // For same-device testing, use localStorage
         localStorage.setItem(`mkgames_signal_${roomId}`, JSON.stringify({
             ...message,
             timestamp: Date.now()
         }));
         
-        // Also try using a simple web service for cross-device communication
-        const response = await fetch('https://api.jsonbin.io/v3/b', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Master-Key': '$2b$10$5I8g1K0YYo1n3kZ5c7Q4O.V8xJ4L9F2A0W3X1P5M6H8K4B2G6Y9E',
-                'X-Bin-Name': `mkgames-${roomId}`
-            },
-            body: JSON.stringify(message)
-        });
+        // For cross-device communication, use a simple public service
+        // Using httpbin.org as a simple relay (for demonstration)
+        const relayUrl = `https://httpbin.org/anything/${roomId}`;
         
-        if (!response.ok) {
-            console.log('Fallback to localStorage signaling');
+        try {
+            await fetch(relayUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...message,
+                    timestamp: Date.now()
+                })
+            });
+        } catch (e) {
+            console.log('Cross-device signaling not available, using localStorage for same-device testing');
         }
+        
     } catch (error) {
-        console.log('Using localStorage for signaling');
+        console.log('Signaling error:', error);
     }
+}
 }
 
 // Listen for signaling messages
 function startSignalingListener() {
     const checkForMessages = async () => {
         try {
-            // Check localStorage first
+            // Check localStorage for same-device testing
             const localMessage = localStorage.getItem(`mkgames_signal_${roomId}`);
             if (localMessage) {
                 const message = JSON.parse(localMessage);
@@ -233,24 +266,6 @@ function startSignalingListener() {
                     handleSignalingMessage(message);
                     localStorage.removeItem(`mkgames_signal_${roomId}`);
                 }
-            }
-            
-            // Also check web service
-            try {
-                const response = await fetch(`https://api.jsonbin.io/v3/b/mkgames-${roomId}/latest`, {
-                    headers: {
-                        'X-Master-Key': '$2b$10$5I8g1K0YYo1n3kZ5c7Q4O.V8xJ4L9F2A0W3X1P5M6H8K4B2G6Y9E'
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.record && data.record.from !== currentPlayer) {
-                        handleSignalingMessage(data.record);
-                    }
-                }
-            } catch (e) {
-                // Web service not available, continue with localStorage
             }
             
         } catch (error) {
@@ -665,26 +680,26 @@ function loadTicTacToeGame(container) {
             <strong>${remotePlayer || 'Waiting...'}</strong> ${isHost ? 'O' : 'X'}</p>
         </div>` : '';
     
+    const statusText = isConnected ? 
+        (isHost ? currentPlayer + "'s Turn (X)" : (remotePlayer || 'Remote Player') + "'s Turn (X)") : 
+        "Player X's Turn";
+    
     container.innerHTML = `
         ${playerAssignment}
-        <div class="game-status" id="ticTacStatus">${isConnected ? 
-            (isHost ? currentPlayer + "'s Turn (X)" : remotePlayer + "'s Turn (X)") : 
-            "Player X's Turn"}</div>
+        <div class="game-status" id="ticTacStatus">${statusText}</div>
         <div class="tictactoe-board" id="ticTacBoard"></div>
         <div class="game-controls">
             <button class="game-btn" onclick="resetTicTacToe()">New Game</button>
             ${isConnected ? '<button class="game-btn" onclick="syncGameState()">Sync Game</button>' : ''}
         </div>
     `;
-    
-    gameState.ticTacToe = {
+      gameState.ticTacToe = {
         board: Array(9).fill(''),
         currentPlayer: 'X',
         gameOver: false
     };
     
     createTicTacToeBoard();
-}
 }
 
 function createTicTacToeBoard() {
